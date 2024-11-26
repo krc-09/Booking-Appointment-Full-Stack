@@ -1,0 +1,22 @@
+{
+  "name": "booking-appointment-application",
+  "version": "1.0.0",
+  "description": "a booking app by kankana rc",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "author": "kankana rc",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.8",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.4",
+    "nodemon": "^3.1.7",
+    "sequelize": "^6.37.5"
+  }
+}
