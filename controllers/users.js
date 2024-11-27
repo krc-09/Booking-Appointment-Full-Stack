@@ -38,3 +38,35 @@ exports.postSignupDetails = async (req, res, next) => {
         res.status(500).json({ error: 'Server error. Please try again later.' });
     }
 };
+exports.postLoginDetails = async (req, res, next) => {
+    const { email, password } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Email is mandatory for login' });
+    }
+    if (!password) {
+        return res.status(400).json({ error: 'Password is mandatory for login' });
+    }
+
+    try {
+      
+        const user = await Users.findOne({ where: { email: email } });
+        if (!user) {
+         
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+       
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+       
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+    
+        res.status(200).json({ message: 'User login successful'});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error. Please try again later.' });
+    }
+};

@@ -6,6 +6,8 @@ const router = express.Router();
 
 
 router.post('/add-users', usersController.postSignupDetails);
+router.post('/login',usersController.postLoginDetails);
+
 
 
 
