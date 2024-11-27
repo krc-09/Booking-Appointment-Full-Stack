@@ -1,6 +1,7 @@
 const Users = require('../MODELS/users');
 const sequelize = require('../utils/database');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken')
 
 
 exports.postSignupDetails = async (req, res, next) => {
@@ -38,6 +39,10 @@ exports.postSignupDetails = async (req, res, next) => {
         res.status(500).json({ error: 'Server error. Please try again later.' });
     }
 };
+
+function generateAccessToken(id,name){
+    return jwt.sign({userId:id,name:name},'TOKEN_SECRET')
+}
 exports.postLoginDetails = async (req, res, next) => {
     const { email, password } = req.body;
 
@@ -64,7 +69,7 @@ exports.postLoginDetails = async (req, res, next) => {
         }
 
     
-        res.status(200).json({ message: 'User login successful'});
+        res.status(200).json({ message: 'User login successful',token:generateAccessToken(user.id,user.name)});
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Server error. Please try again later.' });

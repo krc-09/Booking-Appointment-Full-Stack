@@ -54,6 +54,7 @@
           
             document.getElementById('message').innerText = 'Signup successful!';
             document.getElementById('message').style.color = 'green';
+            setTimeout(() => {window.location.href = "./login.html";},2000);
             
           })
           .catch(err => {

@@ -4,6 +4,11 @@ const path = require('path');
 const cors = require('cors');
 const express = require('express');
 const app = express();
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+// get config vars
+dotenv.config();
 //change cors thing
 app.use(cors(
     {
