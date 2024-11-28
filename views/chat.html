@@ -11,9 +11,9 @@
 <body>
     <nav ><img class="logo" src="logo.png" alt=""><h1> Chatting APPLICATION</h1></nav>
     <div class="container" id = "msg-container">
-  
+  <ul></ul>
 </div>
-<div class="send"><form action="#"id="send-container">
+<div class="send"><form onsubmit = "handleFormSubmit(event)"id="send-container">
     <input type="text"name="messaging"id="messageInp">
     <button class="btn"type="submit">Send</button>
 </form>
@@ -35,6 +35,35 @@ function parseJwt(token) {
         }
 const token = localStorage.getItem('token'); 
 const currentUser = parseJwt(token);
+
+
+
+let currentmessageId = null;
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const messageDetails = {
+               messagecontent: event.target.messaging.value,
+              
+            };
+            const token = localStorage.getItem('token'); 
+
+            axios.post("http://localhost:3000/messages/add-messages", messageDetails, { headers: { "Authorization": token } })
+                .then((response) => {
+                    const messagelist = document.querySelector("ul");
+                    const li = document.createElement('li');
+            li.textContent = response.data.messagecontent;  // Append the new message
+            messagelist.appendChild(li);
+                    
+                    
+                })
+                .catch((error) => console.log(error));
+
+          
+            document.getElementById("message").value = "";
+           
+        }
 
 window.onload = function () {
     axios.get("http://localhost:3000/users/loggedin", { headers: { "Authorization": token } })

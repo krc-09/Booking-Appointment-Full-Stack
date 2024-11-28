@@ -20,10 +20,20 @@ app.use(bodyParser.json());
 
 
 app.use(express.static(path.join(__dirname, 'views'))); 
+const Users = require('./MODELS/users'); 
+const Messages = require('./MODELS/messages'); 
+
+
 
 
 const userRoutes = require('./routes/users');
+const messageRoutes = require('./routes/messages');
+
 app.use('/users', userRoutes);
+app.use('/messages', messageRoutes);
+
+Users.hasMany(Messages);
+Messages.belongsTo(Users);
 
 sequelize.sync()
   .then(result => {
