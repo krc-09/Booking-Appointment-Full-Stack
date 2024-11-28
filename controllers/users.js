@@ -75,3 +75,18 @@ exports.postLoginDetails = async (req, res, next) => {
         res.status(500).json({ error: 'Server error. Please try again later.' });
     }
 };
+exports.getLoggedinDetails = async (req, res, next) => {
+    try {
+        // Fetch all users (you can add logic to filter by logged-in status if necessary)
+        const users = await Users.findAll({
+            attributes: ['name'],  // Select only required fields
+            order: [['createdAt', 'DESC']],
+        });
+
+        // Send the users list as a response
+        res.status(200).json(users);
+    } catch (err) {
+        console.error('Error fetching logged-in users:', err);
+        res.status(500).json({ error: 'An error occurred' });
+    }
+};
