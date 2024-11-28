@@ -58,7 +58,7 @@ let currentmessageId = null;
             } else {
                 li.textContent = `${response.data.username}: ${response.data.messagecontent}`;
             }
-                    
+            messagelist.appendChild(li);
                 })
                 .catch((error) => console.log(error));
 
@@ -90,6 +90,7 @@ window.onload = function () {
             console.error('Error fetching logged-in users:', error);
         });
         displaymessages();
+        setInterval(displaymessages, 1000);
 };
 
 async function displaymessages() {
