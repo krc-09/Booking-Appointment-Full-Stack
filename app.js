@@ -35,7 +35,7 @@ app.use('/messages', messageRoutes);
 Users.hasMany(Messages);
 Messages.belongsTo(Users);
 
-sequelize.sync()
+sequelize.sync({force:true})
   .then(result => {
     console.log('Database synced');
     app.listen(3000, () => {

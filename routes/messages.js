@@ -6,6 +6,7 @@ const router = express.Router();
 
 
 router.post('/add-messages',authentication.authenticate, messagesController.postMessageDetails);
+router.get('/get-messages',authentication.authenticate,messagesController.getmessages);
 
 
 
