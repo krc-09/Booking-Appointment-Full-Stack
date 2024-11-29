@@ -12,14 +12,14 @@ const Messages = sequelize.define('message', {
     type: Sequelize.STRING,
     allowNull: false
   },
- username:{
+  username: {
     type: Sequelize.STRING,
     allowNull: false
-
- }
- 
+  }
+}, {
+  timestamps: true  // Ensures createdAt and updatedAt fields are available
 });
 
-
-
 module.exports = Messages;
+
+

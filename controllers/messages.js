@@ -1,6 +1,8 @@
 const Messages = require('../MODELS/messages');
 const Users = require('../MODELS/users');
 const sequelize = require('../utils/database');
+
+const { Op } = require('sequelize');
 exports.postMessageDetails = async (req, res, next) => {
     const { messagecontent } = req.body; // Extract messagecontent from request body
 
@@ -37,12 +39,21 @@ exports.postMessageDetails = async (req, res, next) => {
 
 
 exports.getmessages = async (req, res, next) => {
+    const after = req.query.after || null;
+
     try {
-        // Fetch all messages from the database, ordered by creation time
-        const messages = await Messages.findAll({
-            order: [['createdAt', 'ASC']],  // Order messages by creation time
-            attributes: ['messagecontent', 'username'],  // Select only the required fields
-        });
+        let queryOptions = {
+            order: [['createdAt', 'ASC']],
+            attributes: ['messagecontent', 'username', 'createdAt']
+        };
+
+        if (after) {
+            queryOptions.where = {
+                createdAt: { [Op.gt]: new Date(after) } // Corrected usage of Op.gt
+            };
+        }
+
+        const messages = await Messages.findAll(queryOptions);
 
         res.status(200).json({ messages });
 
