@@ -79,7 +79,7 @@ exports.getLoggedinDetails = async (req, res, next) => {
     try {
         // Fetch all users (you can add logic to filter by logged-in status if necessary)
         const users = await Users.findAll({
-            attributes: ['name'],  // Select only required fields
+            attributes: ['name','id'],  // Select only required fields
             order: [['createdAt', 'DESC']],
         });
 

@@ -13,19 +13,37 @@
     <nav>
         <img class="logo" src="logo.png" alt="">
         <h1>Chatting Application</h1>
+        <button type="button" onclick="showGroupModal()">Make Your Group</button>
     </nav>
 
-    <!-- Container for Messages -->
+   
     <div class="container" id="msg-container">
         <ul id="messageList"></ul>
     </div>
 
-    <!-- Form to Send Messages -->
+   
     <div class="send">
         <form onsubmit="handleFormSubmit(event)" id="send-container">
             <input type="text" name="messaging" id="messageInp" placeholder="Type a message..." required>
             <button class="btn" type="submit">Send</button>
         </form>
+    </div>
+
+     <!-- Modal for Creating Group -->
+     <div id="groupModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideGroupModal()">&times;</span>
+            <h2>Create a New Group</h2>
+            <form onsubmit="createGroup(event)">
+                <label for="groupName">Group Name:</label>
+                <input type="text" id="groupName" name="groupName" required>
+
+                <h3>Select Users:</h3>
+                <div id="userList"></div>
+
+                <button type="submit">Build Group</button>
+            </form>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -61,23 +79,27 @@
             }
         }
     
-        // Display messages from localStorage
         function displayMessagesFromLocalStorage() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const messageList = document.getElementById("messageList");
-            messageList.innerHTML = ''; // Clear the list first
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const messageList = document.getElementById("messageList");
+    messageList.innerHTML = ''; // Clear the list first
 
-            messages.forEach(message => {
-                // Check if this message is already displayed based on its unique key
-                const messageKey = `${message.username}-${message.createdAt}`;
-                if (!displayedMessages.has(messageKey)) {
-                    const li = document.createElement('li');
-                    li.textContent = `${message.username}: ${message.messagecontent}`;
-                    messageList.appendChild(li);
-                    displayedMessages.add(messageKey); // Track this message
-                }
-            });
+    messages.forEach(message => {
+        const messageKey = `${message.username}-${message.createdAt}`;
+        if (!displayedMessages.has(messageKey)) {
+            const li = document.createElement('li');
+            if (message.username === currentUser.name) {
+                li.textContent = `YOU: ${message.messagecontent}`;
+            } else {
+                li.textContent = `${message.username}: ${message.messagecontent}`;
+            }
+            messageList.appendChild(li);  // Append message to list
+            displayedMessages.add(messageKey); // Track this message
         }
+    });
+}
+
+
     
         // Handle form submission for sending messages
         function handleFormSubmit(event) {
@@ -98,18 +120,21 @@
         }
     
         // Append a message to the message list
-        function appendMessage(message) {
-            const messageList = document.getElementById("messageList");
-            const li = document.createElement('li');
-    
-            if (message.username === currentUser.name) {
-                li.textContent = `YOU: ${message.messagecontent}`;
-            } else {
-                li.textContent = `${message.username}: ${message.messagecontent}`;
-            }
-    
-            messageList.appendChild(li);
-        }
+        // Append a message to the message list
+function appendMessage(message) {
+    const messageList = document.getElementById("messageList");
+    const li = document.createElement('li');
+
+    // Check if this message is sent by the current user
+    if (message.username === currentUser.name) {
+        li.textContent = `YOU: ${message.messagecontent}`; // Display as "YOU"
+    } else {
+        li.textContent = `${message.username}: ${message.messagecontent}`; // Display with username
+    }
+
+    messageList.appendChild(li);
+}
+
     
         // Display the list of messages
         async function displaymessages() {
@@ -161,6 +186,81 @@
             displaymessages(); // Display new messages from the server
             setInterval(displaymessages, 2000); // Periodically fetch new messages every 2 seconds
         };
+
+        function showGroupModal() {
+            document.getElementById('groupModal').style.display = 'block';
+            fetchUsers(); // Fetch users when modal is opened
+        }
+
+        // Function to hide the modal
+        function hideGroupModal() {
+            document.getElementById('groupModal').style.display = 'none';
+        }
+
+        // Fetch all users and display them as checkboxes
+        function fetchUsers() {
+            axios.get('http://localhost:3000/users/loggedin', { headers: { "Authorization": token } })
+                .then(response => {
+                    console.log(response.data); 
+                    const users = response.data;
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = ''; // Clear previous user list
+
+                    users.forEach(user => {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'users';
+                        checkbox.value = user.id;
+                        console.log(checkbox.value);
+
+                        const label = document.createElement('label');
+                        label.textContent = user.name;
+
+                        const div = document.createElement('div');
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+                        userList.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+
+        function createGroup(event) {
+    event.preventDefault();
+
+    const token = localStorage.getItem('token');
+    const currentUser = parseJwt(token); // Get current user info from the JWT
+
+    const groupName = document.getElementById('groupName').value;
+    const selectedUsers = Array.from(document.querySelectorAll('input[name="users"]:checked'))
+        .map(checkbox => parseInt(checkbox.value)); // Convert selected user IDs to integers
+
+    if (!groupName || selectedUsers.length === 0) {
+        alert('Please enter a group name and select at least one user.');
+        return;
+    }
+
+    // Prepare the data for the request
+    const groupDetails = {
+        groupName: groupName,
+        users: selectedUsers // Send all selected users directly to the backend
+    };
+
+    axios.post('http://localhost:3000/groups/create', groupDetails, {
+        headers: { "Authorization": token }
+    })
+    .then(response => {
+        alert('Group created and users added successfully!');
+        hideGroupModal(); // Hide the modal after successful creation
+    })
+    .catch(error => {
+        console.error('Error creating group:', error);
+        alert('Failed to create group. Please try again.');
+    });
+}
+
+
+
     </script>
     
 </body>
