@@ -45,6 +45,8 @@
             </form>
         </div>
     </div>
+    <div id="groupContainer"></div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
@@ -184,7 +186,8 @@ function appendMessage(message) {
             displayMessagesFromLocalStorage(); // Display messages from localStorage
             displayLoggedInUsers(); // Display currently logged-in users
             displaymessages(); // Display new messages from the server
-            setInterval(displaymessages, 2000); // Periodically fetch new messages every 2 seconds
+            setInterval(displaymessages, 2000); 
+            fetchGroups() ;// Periodically fetch new messages every 2 seconds
         };
 
         function showGroupModal() {
@@ -198,20 +201,26 @@ function appendMessage(message) {
         }
 
         // Fetch all users and display them as checkboxes
+
+      
         function fetchUsers() {
+      
             axios.get('http://localhost:3000/users/loggedin', { headers: { "Authorization": token } })
                 .then(response => {
-                    console.log(response.data); 
+                
                     const users = response.data;
                     const userList = document.getElementById('userList');
                     userList.innerHTML = ''; // Clear previous user list
 
                     users.forEach(user => {
+                        const token = localStorage.getItem('token'); // Ensure token is fetched here
+                        const currentUser = parseJwt(token);
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
                         checkbox.name = 'users';
                         checkbox.value = user.id;
-                        console.log(checkbox.value);
+                   
+                    
 
                         const label = document.createElement('label');
                         label.textContent = user.name;
@@ -259,7 +268,39 @@ function appendMessage(message) {
     });
 }
 
+function fetchGroups() {
+    const token = localStorage.getItem('token'); // Example to fetch token
+    const currentUser = parseJwt(token);
 
+    axios.get('http://localhost:3000/groupUsers/getgroupuserdetails', { headers: { "Authorization": token } })
+        .then(response => {
+            const groups = response.data.groups;
+            const groupContainer = document.getElementById('groupContainer'); // Add a container for group buttons
+            groupContainer.innerHTML = ''; // Clear previous group buttons
+
+            if (groups.length > 0) {
+                groups.forEach(group => {
+                    const button = document.createElement('button');
+                    button.textContent = group.groupName;
+                    button.classList.add('group-button'); // Add class for styling
+                    button.onclick = () => joinGroupChat(group.groupId); // Function to join group chat
+                    groupContainer.appendChild(button);
+                });
+            } else {
+                groupContainer.innerHTML = '<p>You are not a member of any groups.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching groups:', error);
+            alert('Failed to fetch groups. Please try again.');
+        });
+}
+
+// Function to join the selected group chat
+// function joinGroupChat(groupId) {
+//     alert(`Joining group chat for Group ID: ${groupId}`);
+//     // Redirect or update UI to show messages for the selected group.
+// }
 
     </script>
     

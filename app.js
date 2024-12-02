@@ -28,6 +28,7 @@ const Groups = require('./MODELS/groups');
 
 
 
+
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
 const groupRoutes = require('./routes/groups')
@@ -36,7 +37,7 @@ const groupUsers = require('./routes/groupusers')
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
 app.use('/groups',groupRoutes);
-app.use('./groupUsers',groupUsers);
+app.use('/groupUsers',groupUsers);
 
 
 Users.hasMany(Messages);
