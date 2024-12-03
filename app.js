@@ -9,6 +9,7 @@ const dotenv = require('dotenv');
 
 // get config vars
 dotenv.config();
+app.use(cors());
 //change cors thing
 app.use(cors(
     {
@@ -31,13 +32,15 @@ const Groups = require('./MODELS/groups');
 
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
-const groupRoutes = require('./routes/groups')
-const groupUsers = require('./routes/groupusers')
+const groupRoutes = require('./routes/groups');
+const groupUsers = require('./routes/groupusers');
+const groupMessage = require('./routes/groupMessages');
 
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
 app.use('/groups',groupRoutes);
 app.use('/groupUsers',groupUsers);
+app.use('/groupMessages',groupMessage);
 
 
 Users.hasMany(Messages);

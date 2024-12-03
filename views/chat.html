@@ -296,11 +296,11 @@ function fetchGroups() {
         });
 }
 
-// Function to join the selected group chat
-// function joinGroupChat(groupId) {
-//     alert(`Joining group chat for Group ID: ${groupId}`);
-//     // Redirect or update UI to show messages for the selected group.
-// }
+// Function to join the selected group chat and redirect to groupchat.html
+function joinGroupChat(groupId) {
+    window.location.href = `groupchat.html?groupId=${groupId}`;
+}
+
 
     </script>
     
