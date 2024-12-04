@@ -14,6 +14,7 @@
         <img class="logo" src="logo.png" alt="">
         <h1>Group Chat</h1>
     </nav>
+    
 
     <div class="container" id="msg-container">
         <ul id="messageList"></ul>
@@ -26,7 +27,7 @@
         </form>
     </div>
 
-  
+    <div id="adminContainer"></div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
 
     <script>
@@ -104,12 +105,71 @@ async function displayGroupMessages() {
         })
         .catch(error => console.error('Error sending message:', error));
 }
+async function fetchAdminControls() {
+    try {
+        const response = await axios.get(`http://localhost:3000/groupUsers/getgroupuserdetails?groupId=${groupId}`, {
+            headers: { "Authorization": token }
+        });
+
+        const groupDetails = response.data.groups.find(group => group.groupId == groupId);
+
+        if (!groupDetails) {
+            console.error('Group details not found for groupId:', groupId);
+            return;
+        }
+
+        const { createdBy, currentUserRole } = groupDetails;  // Destructure correctly
+        const adminContainer = document.getElementById('adminContainer');
+        adminContainer.innerHTML = '';
+
+        console.log('Current User Role:', currentUserRole);
+        console.log('Created By:', createdBy);
+        console.log('Current User ID:', currentUser.userId);
+
+        // Check if current user is the group creator or an admin
+        if (createdBy === currentUser.name || currentUserRole === 'admin') {
+            // Add Member Button
+            const addButton = document.createElement('button');
+            addButton.textContent = 'Add Members';
+            addButton.classList.add('group-button');
+            addButton.onclick = () => addMember();
+            adminContainer.appendChild(addButton);
+
+            // Remove Member Button
+            const removeButton = document.createElement('button');
+            removeButton.textContent = 'Remove Member';
+            removeButton.classList.add('group-button');
+            removeButton.onclick = () => removeMember();
+            adminContainer.appendChild(removeButton);
+
+            // Promote Admin Button
+            const promoteButton = document.createElement('button');
+            promoteButton.textContent = 'Promote Admin';
+            promoteButton.classList.add('group-button');
+            promoteButton.onclick = () => promoteAdmin();
+            adminContainer.appendChild(promoteButton);
+
+            // Delete Group Button
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete Group';
+            deleteButton.classList.add('group-button');
+            deleteButton.onclick = () => deleteGroup();
+            adminContainer.appendChild(deleteButton);
+        } else {
+            adminContainer.innerHTML = '<p>You are not an admin.</p>';
+        }
+    } catch (error) {
+        console.error('Error fetching group details:', error);
+        alert('Failed to fetch group details.');
+    }
+}
 
       
     
         // On page load
         window.onload = function () {
-            displayGroupMessages(); // Load group messages
+            displayGroupMessages();
+            fetchAdminControls() ; // Load group messages
         };
     </script>
     

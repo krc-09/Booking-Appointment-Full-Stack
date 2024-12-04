@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'views'))); 
 const Users = require('./MODELS/users'); 
 const Messages = require('./MODELS/messages'); 
-const Groups = require('./MODELS/groups');
+// const Groups = require('./MODELS/groups');
 
 
 
@@ -32,15 +32,15 @@ const Groups = require('./MODELS/groups');
 
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
-const groupRoutes = require('./routes/groups');
-const groupUsers = require('./routes/groupusers');
-const groupMessage = require('./routes/groupMessages');
+  const groupRoutes = require('./routes/groups');
+ const groupUsers = require('./routes/groupusers');
+  const groupMessage = require('./routes/groupMessages');
 
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
-app.use('/groups',groupRoutes);
-app.use('/groupUsers',groupUsers);
-app.use('/groupMessages',groupMessage);
+ app.use('/groups',groupRoutes);
+ app.use('/groupUsers',groupUsers);
+  app.use('/groupMessages',groupMessage);
 
 
 Users.hasMany(Messages);

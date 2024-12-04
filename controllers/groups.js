@@ -23,15 +23,24 @@ exports.postGroupDetails = async (req, res, next) => {
             return res.status(500).json({ error: 'Failed to create the group.' });
         }
 
-        // Step 2: Add the creator and selected users to the GroupUser table
+        // Step 2: Add the creator as admin and users as members to the GroupUser table
         const groupUsersData = [
-            { groupId: group.id, userId: req.user.id, createdBy: req.user.name }, // Add the creator
+            { 
+                groupId: group.id, 
+                userId: req.user.id, 
+                createdBy: req.user.name, 
+                role: 'admin' 
+            }, // Creator is admin
             ...users.map(userId => ({
                 groupId: group.id,
                 userId: userId,
-                createdBy: req.user.name
+                createdBy: req.user.name,
+                role: 'member'
             }))
         ];
+
+        // Log the group user data to debug role assignments
+        console.log('Group Users Data:', groupUsersData);
 
         await GroupUser.bulkCreate(groupUsersData);
 
@@ -47,18 +56,21 @@ exports.postGroupDetails = async (req, res, next) => {
 };
 
 
-// exports.getgroupDetails = async (req, res, next) => {
-//    try{
+exports.getgroupDetails = async (req, res, next) => {
+   try{
 
-//         const groups = await Group.findAll(
-//             {attributes:['id','createdBy']})
-
-
+    const groups = await Group.findAll({
+        attributes: ['id', 'createdBy', 'groupName', 'memberCount'],
+        include: [{
+            model: GroupUser,
+            attributes: ['userId', 'role']
+        }]
+    });
       
-//         res.status(200).json(groups);
+        res.status(200).json(groups);
 
-//     } catch (err) {
-//         console.error('Error fetching groups:', err);
-//         res.status(500).json({ error: 'An error occurred while fetching groups' });
-//     }
-// };
+    } catch (err) {
+        console.error('Error fetching groups:', err);
+        res.status(500).json({ error: 'An error occurred while fetching groups' });
+    }
+};

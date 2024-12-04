@@ -18,7 +18,7 @@ const GroupMessages = sequelize.define('groupmessage', {
     type: Sequelize.INTEGER,
     allowNull: false,
     references: {
-      model: User, // Correct reference
+      model: User, // Correct reference to User model
       key: 'id'
     }
   },
@@ -26,7 +26,7 @@ const GroupMessages = sequelize.define('groupmessage', {
     type: Sequelize.INTEGER,
     allowNull: false,
     references: {
-      model:Group, // Correct reference
+      model: Group, // Correct reference to Group model
       key: 'id'
     }
   }
@@ -35,12 +35,10 @@ const GroupMessages = sequelize.define('groupmessage', {
 });
 
 // Associations
-User.hasMany(GroupMessages, { foreignKey: 'userId' });
+User.hasMany(GroupMessages, { foreignKey: 'userId', onDelete: 'CASCADE' });
 GroupMessages.belongsTo(User, { foreignKey: 'userId' });
 
-Group.hasMany(GroupMessages, { foreignKey: 'groupId' });
+Group.hasMany(GroupMessages, { foreignKey: 'groupId', onDelete: 'CASCADE' });
 GroupMessages.belongsTo(Group, { foreignKey: 'groupId' });
 
 module.exports = GroupMessages;
-;
-

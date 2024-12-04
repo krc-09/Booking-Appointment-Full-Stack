@@ -1,23 +1,23 @@
-const Sequelize = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../utils/database');
 
 const GroupUser = sequelize.define('group_user', {
   id: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
   userId: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'users',
       key: 'id'
     }
   },
-  groupId: {  // Use groupId instead of groupName
-    type: Sequelize.INTEGER,
+  groupId: {
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'groups',
@@ -25,11 +25,17 @@ const GroupUser = sequelize.define('group_user', {
     }
   },
   createdBy: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
+  },
+  role: {
+    type: DataTypes.ENUM('admin', 'member'),
+    defaultValue: 'member',
+    allowNull: false
   }
 }, {
-  tableName: 'group_users'  // Explicitly set the table name
+  tableName: 'group_users',
+  timestamps: true
 });
 
 module.exports = GroupUser;

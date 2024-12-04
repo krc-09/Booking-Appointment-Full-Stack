@@ -90,3 +90,24 @@ exports.getLoggedinDetails = async (req, res, next) => {
         res.status(500).json({ error: 'An error occurred' });
     }
 };
+
+exports.searchUsers = async (req, res) => {
+    const { query } = req.query; // Search query
+
+    try {
+        // Search users by name, email, or phone
+        const users = await User.findAll({
+            where: {
+                [Op.or]: [
+                    { name: { [Op.like]: `%${query}%` } },
+                    { email: { [Op.like]: `%${query}%` } },
+                    { phone: { [Op.like]: `%${query}%` } }
+                ]
+            }
+        });
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error. Please try again later.' });
+    }
+};
