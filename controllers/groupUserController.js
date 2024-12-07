@@ -183,3 +183,44 @@ exports.getGroupUsers = async (req, res) => {
         res.status(500).json({ error: 'Internal server error.' });
     }
 };
+exports.promoteMemberToAdmin = async (req, res) => {
+    const { userId, groupId } = req.body; // Get userId and groupId from the request body
+
+    // Start a transaction
+    const transaction = await GroupUser.sequelize.transaction();
+
+    try {
+        // Validate input
+        if (!userId || !groupId) {
+            return res.status(400).json({ error: 'User ID and Group ID are required.' });
+        }
+
+        // Find the GroupUser entry for the given userId and groupId
+        const groupUser = await GroupUser.findOne({
+            where: { userId, groupId },
+        });
+
+        if (!groupUser) {
+            return res.status(404).json({ error: 'User is not a member of this group.' });
+        }
+
+        // Update the role to 'admin'
+        groupUser.role = 'admin';
+        await groupUser.save({ transaction });
+
+        // Commit the transaction
+        await transaction.commit();
+
+        res.status(200).json({
+            message: 'User successfully promoted to admin.',
+            userId,
+            groupId,
+            updatedRole: groupUser.role,
+        });
+    } catch (error) {
+        // Rollback the transaction in case of an error
+        await transaction.rollback();
+        console.error('Error promoting user to admin:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};

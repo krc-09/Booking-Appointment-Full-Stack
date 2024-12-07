@@ -9,6 +9,7 @@ router.post('/add-users',authentication.authenticate,groupUserController.addUser
 router.get('/getgroupuserdetails',authentication.authenticate,groupUserController.getUserGroups);
 router.get('/get-users-by-id',authentication.authenticate,groupUserController.getGroupUsers);
 router.post('/remove-user',authentication.authenticate,groupUserController.removeUserToGroup);
+router.put('/promote-to-admin',authentication.authenticate,groupUserController.promoteMemberToAdmin);
 
 
 

@@ -48,6 +48,14 @@
         <button onclick="removeSelectedUsersFromGroup()">Remove Selected Users</button>
     </div>
 </div>
+<div id="promoteAdminModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closePromoteModal()">&times;</span>
+        <h3>Promote Member to Admin</h3>
+        <div id="promoteUserList"></div>
+        <button onclick="promoteSelectedUsersToAdmin()">Promote Selected Users</button>
+    </div>
+</div>
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
@@ -360,6 +368,82 @@ function removeSelectedUsersFromGroup() {
         })
         .catch(error => console.error('Error removing users from group:', error));
 }
+// Open Promote Admin Modal
+function promoteAdmin() {
+    document.getElementById('promoteAdminModal').style.display = 'block';
+    fetchGroupUsersForPromotion(); // Fetch users for promotion
+}
+
+// Close the Modal
+function closePromoteModal() {
+    document.getElementById('promoteAdminModal').style.display = 'none';
+}
+
+// Fetch group members eligible for promotion
+function fetchGroupUsersForPromotion() {
+    axios.get(`http://localhost:3000/groupUsers/get-users-by-id?groupId=${groupId}`, {
+        headers: { "Authorization": token }
+    })
+        .then(response => {
+            const groupUsers = response.data.users; // Adjust as per your API response
+            displayPromoteUsersModal(groupUsers);
+        })
+        .catch(error => console.error('Error fetching group users for promotion:', error));
+}
+
+// Display group members in the modal
+function displayPromoteUsersModal(users) {
+    const promoteUserList = document.getElementById('promoteUserList');
+    promoteUserList.innerHTML = ''; // Clear previous entries
+
+    users.forEach(user => {
+        if (user.role !== 'admin') { // Only show non-admin users
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'promoteUsers';
+            checkbox.value = user.userId;
+
+            const label = document.createElement('label');
+            label.textContent = `${user.userName} (${user.userEmail})`;
+
+            const div = document.createElement('div');
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            promoteUserList.appendChild(div);
+        }
+    });
+}
+
+// Promote selected users to admin
+function promoteSelectedUsersToAdmin() {
+    const selectedUsers = Array.from(document.getElementsByName('promoteUsers'))
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+
+    if (selectedUsers.length === 0) {
+        alert('Please select at least one user to promote.');
+        return;
+    }
+
+    // Send PUT request to promote users to admin
+    const promoteUserPromises = selectedUsers.map(userId => {
+        return axios.put('http://localhost:3000/groupUsers/promote-to-admin', {
+            userId,
+            groupId
+        }, {
+            headers: { "Authorization": token }
+        });
+    });
+
+    Promise.all(promoteUserPromises)
+        .then(() => {
+            alert('Users promoted to admin successfully!');
+            closePromoteModal(); // Close modal after successful promotion
+            fetchAdminControls(); // Refresh admin controls
+        })
+        .catch(error => console.error('Error promoting users to admin:', error));
+}
+
 
 
 
