@@ -23,7 +23,8 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'views'))); 
 const Users = require('./MODELS/users'); 
 const Messages = require('./MODELS/messages'); 
-// const Groups = require('./MODELS/groups');
+const GroupUser = require('./MODELS/GroupUser');
+const Group = require('./MODELS/groups');
 
 
 
@@ -45,10 +46,14 @@ app.use('/messages', messageRoutes);
 
 Users.hasMany(Messages);
 Messages.belongsTo(Users);
+Users.hasMany(GroupUser, { foreignKey: 'userId' });
+GroupUser.belongsTo(Users, { foreignKey: 'userId' });
+Group.hasMany(GroupUser, { foreignKey: 'groupId' });
+GroupUser.belongsTo(Group, { foreignKey: 'groupId' });
 
 
 
-sequelize.sync()
+sequelize.sync({alter:true})
   .then(result => {
     console.log('Database synced');
     app.listen(3000, () => {

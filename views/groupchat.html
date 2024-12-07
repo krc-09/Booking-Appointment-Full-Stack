@@ -28,6 +28,28 @@
     </div>
 
     <div id="adminContainer"></div>
+    <!-- Add Members Button (already in adminControls) -->
+<!-- Modal for selecting and adding members -->
+<div id="addMemberModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Add Members</h3>
+        <input type="text" id="searchInputModal" placeholder="Search by name, phone, or email" oninput="searchUsersModal()">
+        <div id="modalUserList"></div>
+        <button onclick="addSelectedUsersToGroup()">Add Selected Users</button>
+    </div>
+</div>
+<!-- Remove Member Modal -->
+<div id="removeMemberModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeRemoveModal()">&times;</span>
+        <h3>Remove Members</h3>
+        <div id="removeUserList"></div>
+        <button onclick="removeSelectedUsersFromGroup()">Remove Selected Users</button>
+    </div>
+</div>
+
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
 
     <script>
@@ -105,6 +127,7 @@ async function displayGroupMessages() {
         })
         .catch(error => console.error('Error sending message:', error));
 }
+
 async function fetchAdminControls() {
     try {
         const response = await axios.get(`http://localhost:3000/groupUsers/getgroupuserdetails?groupId=${groupId}`, {
@@ -125,6 +148,8 @@ async function fetchAdminControls() {
         console.log('Current User Role:', currentUserRole);
         console.log('Created By:', createdBy);
         console.log('Current User ID:', currentUser.userId);
+
+        
 
         // Check if current user is the group creator or an admin
         if (createdBy === currentUser.name || currentUserRole === 'admin') {
@@ -163,6 +188,180 @@ async function fetchAdminControls() {
         alert('Failed to fetch group details.');
     }
 }
+// Open the Add Member Modal
+function addMember() {
+    document.getElementById('addMemberModal').style.display = 'block';
+    fetchUsersForModal(); // Load users into modal when opened
+}
+
+// Close the Modal
+function closeModal() {
+    document.getElementById('addMemberModal').style.display = 'none';
+}
+
+// Fetch and display users in the modal
+function fetchUsersForModal() {
+    axios.get('http://localhost:3000/users/loggedin', { headers: { "Authorization": token } })
+        .then(response => {
+            const users = response.data;
+            console.log(users)
+            displayUsersModal(users); // Display fetched users in modal
+        })
+        .catch(error => console.error('Error fetching users:', error));
+}
+
+// Display users in the modal
+function displayUsersModal(users) {
+    const userList = document.getElementById('modalUserList');
+    userList.innerHTML = ''; // Clear previous user list
+
+    users.forEach(user => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'modalUsers';
+        checkbox.value = user.id;
+
+        const label = document.createElement('label');
+        label.textContent = `${user.name} (${user.phone }) - ${user.email }`;
+
+        const div = document.createElement('div');
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        userList.appendChild(div);
+    });
+}
+
+// Search users within the modal
+function searchUsersModal() {
+    const searchQuery = document.getElementById('searchInputModal').value.toLowerCase();
+
+    axios.get('http://localhost:3000/users/loggedin', { headers: { "Authorization": token } })
+        .then(response => {
+            const users = response.data;
+
+            // Filter users based on search query
+            const filteredUsers = users.filter(user =>
+                user.name.toLowerCase().includes(searchQuery) ||
+                (user.phone && user.phone.toLowerCase().includes(searchQuery)) ||
+                (user.email && user.email.toLowerCase().includes(searchQuery))
+            );
+
+            displayUsersModal(filteredUsers); // Display filtered users
+        })
+        .catch(error => console.error('Error fetching users:', error));
+}
+
+// Add selected users to the group
+function addSelectedUsersToGroup() {
+    const selectedUsers = Array.from(document.getElementsByName('modalUsers'))
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+
+    if (selectedUsers.length === 0) {
+        alert('Please select at least one user to add.');
+        return;
+    }
+
+    // Send POST request to add users to group
+    const addUserPromises = selectedUsers.map(userId => {
+        return axios.post('http://localhost:3000/groupUsers/add-users', {
+            userId: userId,
+            groupId: groupId,
+            createdBy: currentUser.name,
+            role: 'member' // Default role
+        }, { headers: { "Authorization": token } });
+    });
+
+    Promise.all(addUserPromises)
+        .then(() => {
+            alert('Users added to group successfully!');
+            closeModal(); // Close modal after successful addition
+            fetchAdminControls(); // Refresh admin controls
+        })
+        .catch(error => 
+        console.error('Error adding users to group:', error));
+}
+
+// Open the Remove Member Modal
+function removeMember() {
+    document.getElementById('removeMemberModal').style.display = 'block';
+    fetchGroupUsersForRemoval(); // Fetch users for the modal
+}
+
+// Close the Modal
+function closeRemoveModal() {
+    document.getElementById('removeMemberModal').style.display = 'none';
+}
+
+// Fetch group members for removal
+function fetchGroupUsersForRemoval() {
+    axios.get(`http://localhost:3000/groupUsers/get-users-by-id?groupId=${groupId}`, {
+        headers: { "Authorization": token }
+    })
+        .then(response => {
+            
+            console.log('Response from API:', response.data);
+            const groupUsers = response.data.users; // Adjust as per your API response
+            displayRemoveUsersModal(groupUsers);
+        })
+        .catch(error => console.error('Error fetching group users:', error));
+}
+
+// Display group members in the modal
+function displayRemoveUsersModal(users) {
+    const removeUserList = document.getElementById('removeUserList');
+    removeUserList.innerHTML = ''; // Clear previous entries
+
+    users.forEach(user => {
+        console.log('Processing user:', user);
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'removeUsers';
+        checkbox.value = user.userId;
+
+        const label = document.createElement('label');
+        label.textContent = `${user.userName} (${user.userEmail})`;
+
+        const div = document.createElement('div');
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        removeUserList.appendChild(div);
+    });
+}
+
+// Remove selected users from the group
+function removeSelectedUsersFromGroup() {
+    const selectedUsers = Array.from(document.getElementsByName('removeUsers'))
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+        console.log('Selected Users:', selectedUsers);
+
+
+    if (selectedUsers.length === 0) {
+        alert('Please select at least one user to remove.');
+        return;
+    }
+
+    // Send POST request to remove users from the group
+    const removeUserPromises = selectedUsers.map(userId => {
+        return axios.post('http://localhost:3000/groupUsers/remove-user', {
+            userId,
+            groupId
+        }, {
+            headers: { "Authorization": token }
+        });
+    });
+
+    Promise.all(removeUserPromises)
+        .then(() => {
+            alert('Users removed from group successfully!');
+            closeRemoveModal(); // Close modal after successful removal
+            fetchAdminControls(); // Refresh admin controls
+        })
+        .catch(error => console.error('Error removing users from group:', error));
+}
+
+
 
       
     

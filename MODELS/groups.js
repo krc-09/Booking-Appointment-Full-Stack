@@ -32,8 +32,7 @@ const Group = sequelize.define('group', {
 
 
 
-Group.hasMany(GroupUser, { foreignKey: 'groupId' });
-GroupUser.belongsTo(Group, { foreignKey: 'groupId' });
+
 
 
 
