@@ -53,7 +53,7 @@ GroupUser.belongsTo(Group, { foreignKey: 'groupId' });
 
 
 
-sequelize.sync({alter:true})
+sequelize.sync()
   .then(result => {
     console.log('Database synced');
     app.listen(3000, () => {

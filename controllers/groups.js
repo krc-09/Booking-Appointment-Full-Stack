@@ -74,3 +74,39 @@ exports.getgroupDetails = async (req, res, next) => {
         res.status(500).json({ error: 'An error occurred while fetching groups' });
     }
 };
+exports.deleteGroup = async (req, res, next) => {
+    const { groupId } = req.query; // Assuming group ID is passed as a URL parameter
+
+    if (!groupId) {
+        return res.status(400).json({ error: 'Group ID is required for deletion.' });
+    }
+
+    try {
+        // Fetch group details before deletion (optional, based on requirements)
+        const group = await Group.findByPk(groupId, {
+            attributes: ['id', 'createdBy', 'groupName', 'memberCount']
+        });
+
+        if (!group) {
+            return res.status(404).json({ error: 'Group not found.' });
+        }
+
+        // Delete the group
+        await Group.destroy({
+            where: { id: groupId }
+        });
+
+        // Optional: Clean up associated GroupUser entries
+        await GroupUser.destroy({
+            where: { groupId: groupId }
+        });
+
+        res.status(200).json({
+            message: 'Group deleted successfully.',
+            group: group // Returning the deleted group details (optional)
+        });
+    } catch (err) {
+        console.error('Error deleting group:', err);
+        res.status(500).json({ error: 'An error occurred while deleting the group.' });
+    }
+};

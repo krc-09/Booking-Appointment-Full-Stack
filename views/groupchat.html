@@ -11,6 +11,7 @@
 
 <body>
     <nav>
+        <button onclick = "mainpg()">EXIT TO MAIN CHAT</button>
         <img class="logo" src="logo.png" alt="">
         <h1>Group Chat</h1>
     </nav>
@@ -56,12 +57,23 @@
         <button onclick="promoteSelectedUsersToAdmin()">Promote Selected Users</button>
     </div>
 </div>
+<div id="customAlert" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closedeleteModal()">&times;</span>
+        <h3>Are you sure you want to delete group</h3>
+        <button onclick="handleYes()">Yes</button>
+        <button onclick="handleNo()">No</button>
+    </div>
+</div>
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
 
     <script>
           // Function to parse JWT (added function here)
+          function mainpg(){
+            window.location.href = "chat.html";
+          }
           function parseJwt(token) {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -186,7 +198,7 @@ async function fetchAdminControls() {
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete Group';
             deleteButton.classList.add('group-button');
-            deleteButton.onclick = () => deleteGroup();
+            deleteButton.onclick = () => opendeleteModal();
             adminContainer.appendChild(deleteButton);
         } else {
             adminContainer.innerHTML = '<p>You are not an admin.</p>';
@@ -444,10 +456,43 @@ function promoteSelectedUsersToAdmin() {
         .catch(error => console.error('Error promoting users to admin:', error));
 }
 
+function opendeleteModal() {
+        document.getElementById("customAlert").style.display = "block";
+    }
+function closedeleteModal() {
+        document.getElementById("customAlert").style.display = "none";
+    }
+  
+function handleNo() {
+        console.log("User clicked No");
+        // Close the modal
+        closedeleteModal();
+    }
+ 
 
+    function handleYes() {
+        const urlParams = new URLSearchParams(window.location.search);
+const groupId = urlParams.get('groupId');
 
-
+if (!groupId) {
+        alert("Group ID is missing. Cannot delete the group.");
+        return;
+    }
       
+        console.log("User clicked Yes");
+        axios.delete(`http://localhost:3000/groups/delete-group?groupId=${groupId}`, {
+            headers: { "Authorization": token }
+        })
+        .then(response => {
+            alert("Group deleted successfully!");
+            // Refresh the UI or perform necessary actions
+            closedeleteModal();
+        })
+        .catch(error => {
+            console.error('Error deleting the group:', error);
+            alert("An error occurred while deleting the group.");
+        });
+    }      
     
         // On page load
         window.onload = function () {
