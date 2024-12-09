@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Realtime Group Chatting App </title>
+    <link rel="stylesheet" href="../main/chat.css">
+</head>
+
+<body>
+    <nav>
+        <img class="logo" src="./logo.png" alt="">
+        <h1>Chatting Application</h1>
+        <button type="button" onclick="showGroupModal()">Make Your Group</button>
+    </nav>
+
+   
+    <div class="container" id="msg-container">
+        <ul id="messageList"></ul>
+    </div>
+
+   
+    <div class="send">
+        <form onsubmit="handleFormSubmit(event)" id="send-container">
+            <input type="text" name="messaging" id="messageInp" placeholder="Type a message..." required>
+            <button class="btn" type="submit">Send</button>
+        </form>
+    </div>
+
+    
+     <div id="groupModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideGroupModal()">&times;</span>
+            <h2>Create a New Group</h2>
+            <form onsubmit="createGroup(event)">
+                <label for="groupName">Group Name:</label>
+                <input type="text" id="groupName" name="groupName" required>
+
+                <h3>Select Users:</h3>
+                <div id="userList"></div>
+
+                <button type="submit">Build Group</button>
+            </form>
+        </div>
+    </div>
+    <div id="groupContainer"></div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Function to parse JWT and get the user information
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+    
+            return JSON.parse(jsonPayload);
+        }
+    
+        const token = localStorage.getItem('token');
+        const currentUser = parseJwt(token); // Get current user info from the JWT
+    
+        let displayedMessages = new Set(); // Track displayed messages using their unique IDs or timestamps
+    
+        // Save a message to localStorage (max 10 messages)
+        function saveMessageToLocalStorage(message) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+
+            // Check if the message already exists based on its unique key
+            const messageKey = `${message.username}-${message.createdAt}`;
+            if (!messages.some(existingMessage => `${existingMessage.username}-${existingMessage.createdAt}` === messageKey)) {
+                messages.push(message);
+                if (messages.length > 10) {
+                    messages.shift(); // Remove the oldest message
+                }
+                localStorage.setItem('messages', JSON.stringify(messages));
+            }
+        }
+    
+        function displayMessagesFromLocalStorage() {
+    const messages = JSON.parse(localStorage.getItem('messages')) || [];
+    const messageList = document.getElementById("messageList");
+    messageList.innerHTML = ''; // Clear the list first
+
+    messages.forEach(message => {
+        const messageKey = `${message.username}-${message.createdAt}`;
+        if (!displayedMessages.has(messageKey)) {
+            const li = document.createElement('li');
+            if (message.username === currentUser.name) {
+                li.textContent = `YOU: ${message.messagecontent}`;
+            } else {
+                li.textContent = `${message.username}: ${message.messagecontent}`;
+            }
+            messageList.appendChild(li);  // Append message to list
+            displayedMessages.add(messageKey); // Track this message
+        }
+    });
+}
+
+
+    
+        // Handle form submission for sending messages
+        function handleFormSubmit(event) {
+            event.preventDefault();
+    
+            const messageDetails = {
+                messagecontent: event.target.messaging.value
+            };
+    
+            axios.post("http://localhost:3000/messages/add-messages", messageDetails, { headers: { "Authorization": token } })
+                .then(response => {
+                    const messageData = response.data;
+                    saveMessageToLocalStorage(messageData); // Save message to localStorage
+                    displayedMessages.add(`${messageData.username}-${messageData.createdAt}`); // Track it to prevent duplication
+                    document.getElementById("messageInp").value = ""; // Clear input field
+                })
+                .catch(error => console.error(error));
+        }
+    
+        // Append a message to the message list
+        // Append a message to the message list
+function appendMessage(message) {
+    const messageList = document.getElementById("messageList");
+    const li = document.createElement('li');
+
+    // Check if this message is sent by the current user
+    if (message.username === currentUser.name) {
+        li.textContent = `YOU: ${message.messagecontent}`; // Display as "YOU"
+    } else {
+        li.textContent = `${message.username}: ${message.messagecontent}`; // Display with username
+    }
+
+    messageList.appendChild(li);
+}
+
+    
+        // Display the list of messages
+        async function displaymessages() {
+            try {
+                const response = await axios.get('http://localhost:3000/messages/get-messages', {
+                    headers: { "Authorization": token },
+                });
+    
+                const messages = response.data.messages;
+
+                // Iterate through the messages to display them
+                messages.forEach(message => {
+                    // Check if this message has been displayed using unique identifiers
+                    const messageKey = `${message.username}-${message.createdAt}`;
+
+                    if (!displayedMessages.has(messageKey)) {
+                        appendMessage(message); // Append message if not already displayed
+                        saveMessageToLocalStorage(message); // Save it to localStorage
+                        displayedMessages.add(messageKey); // Track it to prevent duplication
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+            }
+        }
+    
+        // Display logged-in users
+        function displayLoggedInUsers() {
+            axios.get("http://localhost:3000/users/loggedin", { headers: { "Authorization": token } })
+                .then(response => {
+                    const userList = document.getElementById('msg-container');
+                    response.data.forEach(user => {
+                        const userElement = document.createElement('p');
+                        if (user.name === currentUser.name) {
+                            userElement.textContent = `You joined`;
+                        } else {
+                            userElement.textContent = `${user.name} joined`;
+                        }
+                        userList.appendChild(userElement);
+                    });
+                })
+                .catch(error => console.error('Error fetching logged-in users:', error));
+        }
+    
+        // On page load
+        window.onload = function () {
+            displayMessagesFromLocalStorage(); // Display messages from localStorage
+            displayLoggedInUsers(); // Display currently logged-in users
+            displaymessages(); // Display new messages from the server
+            setInterval(displaymessages, 2000); 
+            fetchGroups() ;// Periodically fetch new messages every 2 seconds
+        };
+
+        function showGroupModal() {
+            document.getElementById('groupModal').style.display = 'block';
+            fetchUsers(); // Fetch users when modal is opened
+        }
+
+        // Function to hide the modal
+        function hideGroupModal() {
+            document.getElementById('groupModal').style.display = 'none';
+        }
+
+        // Fetch all users and display them as checkboxes
+
+      
+        function fetchUsers() {
+      
+            axios.get('http://localhost:3000/users/loggedin', { headers: { "Authorization": token } })
+                .then(response => {
+                
+                    const users = response.data;
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = ''; // Clear previous user list
+
+                    users.forEach(user => {
+                        const token = localStorage.getItem('token'); // Ensure token is fetched here
+                        const currentUser = parseJwt(token);
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'users';
+                        checkbox.value = user.id;
+                   
+                    
+
+                        const label = document.createElement('label');
+                        label.textContent = user.name;
+
+                        const div = document.createElement('div');
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+                        userList.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+
+        function createGroup(event) {
+    event.preventDefault();
+
+    const token = localStorage.getItem('token');
+    const currentUser = parseJwt(token); // Get current user info from the JWT
+
+    const groupName = document.getElementById('groupName').value;
+    const selectedUsers = Array.from(document.querySelectorAll('input[name="users"]:checked'))
+        .map(checkbox => parseInt(checkbox.value)); // Convert selected user IDs to integers
+
+    if (!groupName || selectedUsers.length === 0) {
+        alert('Please enter a group name and select at least one user.');
+        return;
+    }
+
+    // Prepare the data for the request
+    const groupDetails = {
+        groupName: groupName,
+        users: selectedUsers // Send all selected users directly to the backend
+    };
+
+    axios.post('http://localhost:3000/groups/create', groupDetails, {
+        headers: { "Authorization": token }
+    })
+    .then(response => {
+        alert('Group created and users added successfully!');
+        hideGroupModal(); // Hide the modal after successful creation
+    })
+    .catch(error => {
+        console.error('Error creating group:', error);
+        alert('Failed to create group. Please try again.');
+    });
+}
+
+function fetchGroups() {
+    const token = localStorage.getItem('token'); // Example to fetch token
+    const currentUser = parseJwt(token);
+
+    axios.get('http://localhost:3000/groupUsers/getgroupuserdetails', { headers: { "Authorization": token } })
+        .then(response => {
+            const groups = response.data.groups;
+            const groupContainer = document.getElementById('groupContainer'); // Add a container for group buttons
+            groupContainer.innerHTML = ''; // Clear previous group buttons
+
+            if (groups.length > 0) {
+                groups.forEach(group => {
+                    const button = document.createElement('button');
+                    button.textContent = group.groupName;
+                    button.classList.add('group-button'); // Add class for styling
+                    button.onclick = () => joinGroupChat(group.groupId); // Function to join group chat
+                    groupContainer.appendChild(button);
+                });
+            } else {
+                groupContainer.innerHTML = '<p>You are not a member of any groups.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching groups:', error);
+            alert('Failed to fetch groups. Please try again.');
+        });
+}
+
+// Function to join the selected group chat and redirect to groupchat.html
+function joinGroupChat(groupId) {
+    window.location.href = `groupchat.html?groupId=${groupId}`;
+}
+
+
+    </script>
+    
+</body>
+
+</html>
+

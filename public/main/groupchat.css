@@ -1,0 +1,110 @@
+.logo{
+    display: block;
+    margin: auto;
+    width: 50px;
+    height: 50px;
+}
+body{
+    background-image: linear-gradient(rgb(60, 5, 48),rgb(237, 85, 184));
+    height: 100vh;
+}
+h1{
+    margin-top:  12px;
+    font-size: 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    color: rgb(116, 160, 145);
+}
+
+.container{
+    max-width: 955px;
+    border: 2px solid black;
+    margin: auto;
+    height: 60vh;
+    padding: 33px;
+    overflow-y:auto;
+    margin-bottom:23px;
+}
+.message{
+    background-color: aquamarine;
+    width: 24%;
+    padding: 10px;
+    margin:17px 12px;
+    border:2px solid black;
+    border-radius:  10px;
+}
+.left{
+    float:left;
+    clear:both;
+}
+.right{
+    float:right;
+    clear:both;
+}
+#send-container{
+    display: block;
+    margin: auto;
+    text-align: center;
+    max-width: 1085px;
+    width: 100%;
+}
+#messageInp{
+    width: 80%;
+    border: 2px solid black;
+    border-radius: 6px;
+    height:34px;
+    font-size: 22px;
+}
+.btn{
+    width: 9%;
+    cursor:pointer;
+    border:2px solid black;
+    border-radius: 6px;
+    height: 34px;
+
+}
+
+p
+    {
+        background-color: rgb(200 227 211);
+        border: 2px solid #4585b0;
+        
+       
+    }
+
+    /* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
