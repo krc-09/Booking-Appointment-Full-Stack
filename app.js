@@ -30,7 +30,7 @@ const Group = require('./MODELS/groups');
 
 
 
-const mainRouter = require('./routes/mainpg');
+// const mainRouter = require('./routes/mainpg');
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
   const groupRoutes = require('./routes/groups');
@@ -38,7 +38,7 @@ const messageRoutes = require('./routes/messages');
   const groupMessage = require('./routes/groupMessages');
 
  
-app.use(mainRouter);
+// app.use(mainRouter);
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
  app.use('/groups',groupRoutes);
@@ -47,7 +47,7 @@ app.use('/messages', messageRoutes);
 
   app.use( (req, res) => {
     console.log(req.url);
-    res.sendFile(path.join(__dirname, `public/views/${req.url}`));
+    res.sendFile(path.join(__dirname, `public/views/`));
   });
  
 
