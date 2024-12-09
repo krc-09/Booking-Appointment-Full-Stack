@@ -20,7 +20,7 @@ app.use(cors(
 app.use(bodyParser.json()); 
 
 app.use(express.static(path.join(__dirname, 'public')));
-// app.use(express.static(path.join(__dirname, 'views'))); 
+
 const Users = require('./MODELS/users'); 
 const Messages = require('./MODELS/messages'); 
 const GroupUser = require('./MODELS/GroupUser');
@@ -30,7 +30,6 @@ const Group = require('./MODELS/groups');
 
 
 
-// const mainRouter = require('./routes/mainpg');
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/messages');
   const groupRoutes = require('./routes/groups');
@@ -38,18 +37,33 @@ const messageRoutes = require('./routes/messages');
   const groupMessage = require('./routes/groupMessages');
 
  
-// app.use(mainRouter);
+
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
  app.use('/groups',groupRoutes);
  app.use('/groupUsers',groupUsers);
   app.use('/groupMessages',groupMessage);
 
-  app.use( (req, res) => {
+  // app.use('/' ,(req, res) => {
+  //  console.log(req.url);
+  //   res.sendFile(path.join(__dirname, `public/views/home.html`));
+  // });
+
+  app.use((req, res) => {
     console.log(req.url);
-    res.sendFile(path.join(__dirname, `public/views/`));
-  });
- 
+    let url = req.url.split('?')[0]; // Remove query parameters
+    if (url === '/') {
+        res.sendFile(path.join(__dirname, 'public/views/home.html'));
+    } else {
+        res.sendFile(path.join(__dirname, `public/views${url}`), (err) => {
+            if (err) {
+                console.log(err);
+                res.status(404).send('Page not found');
+            }
+        });
+    }
+});
+
 
 Users.hasMany(Messages);
 Messages.belongsTo(Users);
