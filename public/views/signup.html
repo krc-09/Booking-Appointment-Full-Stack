@@ -38,34 +38,33 @@
     let currentUserId = null;
 
     function handleFormSubmit(event) {
-      event.preventDefault();
+    event.preventDefault();
 
-      const userDetails = {
-        name: event.target.name.value,
-         password: event.target.password.value,
-          email: event.target.email.value,
-          phone: event.target.phone.value,
-      };
+    const messageDetails = {
+        messagecontent: event.target.messaging.value
+    };
 
-    
-      axios
-          .post("http://localhost:3000/users/add-users", userDetails)
-          .then((response) => {
-          
-            document.getElementById('message').innerText = 'Signup successful!';
-            document.getElementById('message').style.color = 'green';
-            setTimeout(() => {window.location.href = "./login.html";},2000);
-            
-          })
-          .catch(err => {
-                    if (err.response && err.response.status === 409) {
-                        document.getElementById('message').innerText = 'User already exists!';
-                        document.getElementById('message').style.color = 'red';
-                    } else {
-                        document.getElementById('message').innerText = 'An error occurred. Please try again.';
-                        document.getElementById('message').style.color = 'orange';
-                    }
-                });
+    // Immediately append the message to the message list
+    const messageData = {
+        username: currentUser.name,
+        messagecontent: messageDetails.messagecontent,
+        createdAt: new Date().toISOString() // Add timestamp for uniqueness
+    };
+    appendMessage(messageData); // Display message immediately
+    saveMessageToLocalStorage(messageData); // Save message to localStorage
+    displayedMessages.add(`${messageData.username}-${messageData.createdAt}`); // Track this message
+
+    // Send the message to the server
+    axios.post("http://localhost:3000/messages/add-messages", messageDetails, { headers: { "Authorization": token } })
+        .then(response => {
+            // Message will already be added to the UI before server response
+        })
+        .catch(error => console.error(error));
+
+    // Clear input field
+    document.getElementById("messageInp").value = "";
+}
+
 
             event.target.reset();
         

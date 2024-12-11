@@ -12,4 +12,3 @@ router.get('/get-messages',authentication.authenticate,messagesController.getmes
 
 
 module.exports = router;
-
